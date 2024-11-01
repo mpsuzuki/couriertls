@@ -1,0 +1,93 @@
+# -------------------------------------------------
+# SSL-implementation independent part 
+# 
+SUBDIRS = liblock-mini numlib soxwrap
+bin_PROGRAMS =
+noinst_LIBRARIES = libspipe.a
+
+couriertls_SOURCES = \
+	argparse.c argparse.h \
+	starttls.c
+
+couriertls_CFLAGS = \
+	$(LIBLOCK_CFLAGS) $(NUMLIB_CPPFLAGS) $(SOXWRAP_CPPFLAGS)
+
+couriertls_LDADD = \
+	-L$(builddir) -lspipe \
+	$(LIBLOCK_LIBS) $(IDN2_LIBS)
+
+couriertls_deps = \
+	$(top_builddir)/libspipe.a
+
+libspipe_a_SOURCES = spipe.c spipe.h
+libspipe_a_CFLAGS = $(P11KIT_CFLAGS)
+
+if !HAVE_LIBLOCK
+  couriertls_deps += \
+	$(top_builddir)/liblock-mini/liblock.a
+endif
+
+libcouriertls_srcs = tlscache.c tlscache.h tlsinfo.c
+libcouriertls_cflags = $(LIBLOCK_CFLAGS) $(NUMLIB_CPPFLAGS)
+
+
+# -------------------------------------------------
+# OpenSSL dependent target
+#
+if HAVE_OPENSSL
+  bin_PROGRAMS += couriertls-openssl
+  noinst_LIBRARIES += libcouriertlsopenssl.a
+endif
+
+openssldep = @openssldep@
+
+couriertls_openssl_CFLAGS = \
+	$(couriertls_CFLAGS)
+
+couriertls_openssl_SOURCES = $(couriertls_SOURCES)
+
+couriertls_openssl_LDADD = \
+	-L$(top_builddir) -lcouriertlsopenssl \
+	$(couriertls_LDADD) \
+	$(openssldep)
+
+couriertls_openssl_DEPENDENCIES = \
+	$(couriertls_deps) \
+	$(top_builddir)/libcouriertlsopenssl.a
+
+libcouriertlsopenssl_a_SOURCES = \
+	$(libcouriertls_srcs) \
+	libcouriertls.c libcouriertls.h
+libcouriertlsopenssl_a_CFLAGS = \
+	$(libcouriertls_cflags)
+
+
+# -------------------------------------------------
+# GnuTLS dependent target
+#
+if HAVE_GNUTLS
+  bin_PROGRAMS += couriertls-gnutls
+  noinst_LIBRARIES += libcouriertlsgnutls.a
+endif
+
+gnutsldep = @gnutlsdep@
+
+couriertls_gnutls_SOURCES  = $(couriertls_SOURCES)
+
+couriertls_gnutls_LDADD = \
+	-L$(top_builddir) -lcouriertlsgnutls \
+	$(couriertls_LDADD) \
+	$(gnutlsdep)
+
+couriertls_gnutls_CFLAGS = \
+	$(couriertls_CFLAGS)
+
+couriertls_gnutls_DEPENDENCIES = \
+	$(couriertls_deps) \
+	$(top_builddir)/libcouriertlsgnutls.a
+
+libcouriertlsgnutls_a_SOURCES = \
+	$(libcouriertls_srcs) \
+	libcouriergnutls.c
+libcouriertlsgnutls_a_CFLAGS = \
+	$(libcouriertls_cflags)
