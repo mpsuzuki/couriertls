@@ -63,7 +63,6 @@
 
 /* Command-line options: */
 
-const char *server=0;
 const char *localfd=0;
 const char *remotefd=0;
 const char *statusfd=0;
@@ -325,7 +324,7 @@ static int verify_connection(ssl_handle ssl, void *dummy)
 	if (tls_certificate_verified(ssl))
 		dcs.set_subject=1;
 
-	tls_dump_connection_info(ssl, server ? 1:0, dump_to_fp, &dcs);
+	tls_dump_connection_info(ssl, 1, dump_to_fp, &dcs);
 
 	if (printx509_fp)
 	{
@@ -467,7 +466,7 @@ static int dossl(int fd, int argn, int argc, char **argv)
 	stdin_fd=0;
 	stdout_fd=1;
 
-	ctx=tls_create(server ? 1:0, &info);
+	ctx=tls_create(1, &info);
 	if (ctx == 0)	return (1);
 
 	ssl=tls_connect(ctx, fd);
@@ -506,7 +505,6 @@ static struct args arginfo[] = {
 	{ "localfd", &localfd},
 	{ "printx509", &printx509},
 	{ "remotefd", &remotefd},
-	{ "server", &server},
 	{ "tcpd", &tcpd},
 	{ "verify", &peer_verify_domain},
 	{ "statusfd", &statusfd},
