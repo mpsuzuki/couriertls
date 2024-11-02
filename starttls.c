@@ -571,128 +571,6 @@ static void prb_write(int fd, struct protoreadbuf *prb, const char *p)
 	}
 }
 
-static int goodimap(const char *p)
-{
-	if (*p == 'x' && p[1] && isspace((int)(unsigned char)p[1]))
-		++p;
-	else
-	{
-		if (*p != '*')
-			return (0);
-		++p;
-	}
-	while (*p && isspace((int)(unsigned char)*p))
-		++p;
-	if (strncasecmp(p, "BAD", 3) == 0)
-	{
-		exit(1);
-	}
-
-	if (strncasecmp(p, "BYE", 3) == 0)
-	{
-		exit(1);
-	}
-
-	if (strncasecmp(p, "NO", 2) == 0)
-	{
-		exit(1);
-	}
-
-	return (strncasecmp(p, "OK", 2) == 0);
-}
-
-static void imap_proto(int fd)
-{
-	struct protoreadbuf prb;
-	const char *p;
-
-	PRB_INIT(&prb);
-
-	do
-	{
-		p=prb_getline(fd, &prb);
-		printf("%s\n", p);
-
-	} while (!goodimap(p));
-
-	prb_write(fd, &prb, "x STARTTLS\r\n");
-
-	do
-	{
-		p=prb_getline(fd, &prb);
-		printf("%s\n", p);
-	} while (!goodimap(p));
-}
-
-static void pop3_proto(int fd)
-{
-	struct protoreadbuf prb;
-	const char *p;
-
-	PRB_INIT(&prb);
-
-	p=prb_getline(fd, &prb);
-	printf("%s\n", p);
-
-	prb_write(fd, &prb, "STLS\r\n");
-
-	p=prb_getline(fd, &prb);
-	printf("%s\n", p);
-}
-
-static void smtp_proto(int fd)
-{
-	struct protoreadbuf prb;
-	const char *p;
-
-	char hostname[1024];
-
-	PRB_INIT(&prb);
-
-	do
-	{
-		p=prb_getline(fd, &prb);
-		printf("%s\n", p);
-	} while ( ! ( isdigit((int)(unsigned char)p[0]) &&
-		      isdigit((int)(unsigned char)p[1]) &&
-		      isdigit((int)(unsigned char)p[2]) &&
-		      (p[3] == 0 || isspace((int)(unsigned char)p[3]))));
-	if (strchr("123", *p) == 0)
-		exit(1);
-
-	hostname[sizeof(hostname)-1]=0;
-	if (gethostname(hostname, sizeof(hostname)-1) < 0)
-		strcpy(hostname, "localhost");
-
-	prb_write(fd, &prb, "EHLO ");
-	prb_write(fd, &prb, hostname);
-	prb_write(fd, &prb, "\r\n");
-	do
-	{
-		p=prb_getline(fd, &prb);
-		printf("%s\n", p);
-	} while ( ! ( isdigit((int)(unsigned char)p[0]) &&
-		      isdigit((int)(unsigned char)p[1]) &&
-		      isdigit((int)(unsigned char)p[2]) &&
-		      (p[3] == 0 || isspace((int)(unsigned char)p[3]))));
-	if (strchr("123", *p) == 0)
-		exit(1);
-
-	prb_write(fd, &prb, "STARTTLS\r\n");
-
-	do
-	{
-		p=prb_getline(fd, &prb);
-		printf("%s\n", p);
-	} while ( ! ( isdigit((int)(unsigned char)p[0]) &&
-		      isdigit((int)(unsigned char)p[1]) &&
-		      isdigit((int)(unsigned char)p[2]) &&
-		      (p[3] == 0 || isspace((int)(unsigned char)p[3]))));
-	if (strchr("123", *p) == 0)
-		exit(1);
-
-}
-
 int main(int argc, char **argv)
 {
 int	argn;
@@ -705,7 +583,6 @@ static struct args arginfo[] = {
 	{ "tcpd", &tcpd},
 	{ "verify", &peer_verify_domain},
 	{ "statusfd", &statusfd},
-	{ "protocol", &fdprotocol},
 	{0}};
 void (*protocol_func)(int)=0;
 
@@ -719,22 +596,6 @@ void (*protocol_func)(int)=0;
 
 	if (statusfp)
 		errfp=statusfp;
-
-	if (fdprotocol)
-	{
-		if (strcmp(fdprotocol, "smtp") == 0)
-			protocol_func= &smtp_proto;
-		else if (strcmp(fdprotocol, "imap") == 0)
-			protocol_func= &imap_proto;
-		else if (strcmp(fdprotocol, "pop3") == 0)
-			protocol_func= &pop3_proto;
-		else
-		{
-			fprintf(stderr, "--protocol=%s - unknown protocol.\n",
-				fdprotocol);
-			exit(1);
-		}
-	}
 
 	if (tcpd)
 	{
