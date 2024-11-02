@@ -62,8 +62,6 @@
 
 
 /* Command-line options: */
-const char *clienthost=0;
-const char *clientport=0;
 
 const char *server=0;
 const char *localfd=0;
@@ -783,9 +781,7 @@ int main(int argc, char **argv)
 int	argn;
 int	fd;
 static struct args arginfo[] = {
-	{ "host", &clienthost },
 	{ "localfd", &localfd},
-	{ "port", &clientport },
 	{ "printx509", &printx509},
 	{ "remotefd", &remotefd},
 	{ "server", &server},
@@ -830,8 +826,6 @@ void (*protocol_func)(int)=0;
 	}
 	else if (remotefd)
 		fd=atoi(remotefd);
-	else if (clienthost && clientport)
-		fd=connectremote(clienthost, clientport);
 	else
 	{
 		fprintf(errfp, "%s: specify remote location.\n",
