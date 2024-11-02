@@ -11,9 +11,6 @@
 #include	<openssl/x509.h>
 #include	<openssl/x509v3.h>
 #include	"tlscache.h"
-#include	"rfc1035/rfc1035.h"
-#include	"soxwrap/soxwrap.h"
-#include	"random128/random128.h"
 #ifdef  getc
 #undef  getc
 #endif

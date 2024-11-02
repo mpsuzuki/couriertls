@@ -8,9 +8,6 @@
 
 #include	"libcouriertls.h"
 #include	"tlscache.h"
-#include	"rfc1035/rfc1035.h"
-#include	"soxwrap/soxwrap.h"
-#include	"numlib/numlib.h"
 
 #ifdef  getc
 #undef  getc
