@@ -72,7 +72,6 @@ const char *statusfd=0;
 const char *tcpd=0;
 const char *peer_verify_domain=0;
 const char *fdprotocol=0;
-const char *username=0;
 static FILE *errfp;
 static FILE *statusfp;
 
@@ -576,9 +575,6 @@ static int dossl(int fd, int argn, int argc, char **argv)
 	startclient(argn, argc, argv, fd, &stdin_fd, &stdout_fd);
 	trapexit();
 
-	if (username)
-		libmail_changeusername(username, 0);
-
 	docopy(ssl, fd, stdin_fd, stdout_fd);
 
 	tls_disconnect(ssl, fd);
@@ -797,7 +793,6 @@ static struct args arginfo[] = {
 	{ "verify", &peer_verify_domain},
 	{ "statusfd", &statusfd},
 	{ "protocol", &fdprotocol},
-	{ "user", &username},
 	{0}};
 void (*protocol_func)(int)=0;
 
