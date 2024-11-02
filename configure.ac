@@ -302,6 +302,9 @@ AC_SUBST([LIBLOCK_CFLAGS])
 AC_SUBST([LIBLOCK_LIBS])
 
 # Checks for numlib
+AC_CHECK_HEADER([numlib/config.h],[
+  AC_DEFINE([HAVE_NUMLIB_CONFIG_H],[1],[Defined to 1 if numlib/config.h is available])
+])
 AC_CHECK_HEADER([numlib.h],[
   NUMLIB_CPPFLAGS=""
 ],[
