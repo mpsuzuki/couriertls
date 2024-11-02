@@ -285,6 +285,9 @@ AC_MSG_CHECKING([for stream pipes])
 AC_MSG_RESULT($spipe)
 
 # Checks for liblock
+AC_CHECK_HEADER([liblock/config.h],[
+  AC_DEFINE([HAVE_LIBLOCK_CONFIG_H],[1],[Defined to 1 if liblock/config.h is available])
+])
 AC_CHECK_LIB([lock], [ll_lockfd], [
   LIBLOCK_CFLAGS=
   LIBLOCK_LIBS=-llock
