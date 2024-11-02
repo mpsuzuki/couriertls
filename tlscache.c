@@ -4,8 +4,13 @@
 */
 #include	"config.h"
 #include	"numlib/numlib.h"
-#include	"liblock/config.h"
-#include	"liblock/liblock.h"
+#if USE_LIBLOCK_MINI
+# include	"liblock-mini/config.h"
+# include	"liblock-mini/liblock.h"
+#else
+# include	"liblock/config.h"
+# include	"liblock/liblock.h"
+#endif
 #include	<stdio.h>
 #include	<string.h>
 #include	<stdlib.h>
