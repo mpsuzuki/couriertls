@@ -3,7 +3,7 @@
 # distribution information.
 
 
-CLEANFILES=$(noinst_DATA)
+CLEANFILES=$(noinst_DATA) libnumlib.a *.lo *.o
 EXTRA_LIBRARIES = libnumlib.a
 
 libnumlib_a_SOURCES=\
