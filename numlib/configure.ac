@@ -3,34 +3,35 @@ dnl
 dnl Copyright 1998 - 2010 Double Precision, Inc.  See COPYING for
 dnl distribution information.
 
-AC_INIT([numlib],[0.10],[courier-users@lists.sourceforge.net])
+AC_INIT([numlib],[0.10],[https://gitlab.com/mpsuzuki/couriertls-server/-/issues])
 
->confdefs.h  # Kill PACKAGE_ macros
+#>confdefs.h  # Kill PACKAGE_ macros
 
 AC_CONFIG_SRCDIR([atotimet.c])
-AC_CONFIG_AUX_DIR(../..)
-AC_CONFIG_HEADERS([numlib-config.h])
+# AC_CONFIG_AUX_DIR(../..)
+AC_CONFIG_HEADERS([numlib_config.h])
 AM_INIT_AUTOMAKE([foreign no-define])
 
 dnl Checks for programs.
-AC_PROG_AWK
+# AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
-LT_INIT
+AC_PROG_RANLIB
+# LT_INIT
 
 if test "$GCC" = "yes"
 then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-CFLAGS="-I.. -I${srcdir}/.. $CFLAGS"
+# CFLAGS="-I.. -I${srcdir}/.. $CFLAGS"
 
 dnl Checks for libraries.
 
 dnl Checks for header files.
 
-AC_CHECK_HEADERS(unistd.h stdint.h)
+# AC_CHECK_HEADERS(unistd.h stdint.h)
 
 AC_CHECK_TYPE(int64_t, [ : ],
 		       [
@@ -45,5 +46,6 @@ AC_SYS_LARGEFILE
 dnl Checks for library functions.
 
 AC_CHECK_FUNCS(setgroups initgroups)
-AC_CONFIG_FILES([Makefile])
+# AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([GNUmakefile])
 AC_OUTPUT
