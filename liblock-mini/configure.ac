@@ -2,212 +2,247 @@ dnl
 dnl Copyright 1998 - 2004 Double Precision, Inc.  See COPYING for
 dnl distribution information.
 
-AC_INIT([liblock],[0.60],[courier-users@lists.sourceforge.net])
+AC_INIT([liblock-mini],[0.60],[https://gitlab.com/mpsuzuki/couriertls-server/-/issues])
 
->confdefs.h  # Kill PACKAGE_ macros
-
-AC_CONFIG_SRCDIR([liblock.h])
-AC_CONFIG_AUX_DIR(../..)
-AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([foreign no-define])
-
-CFLAGS="-I.. -I${srcdir}/.. $CFLAGS"
+AC_CONFIG_HEADERS([liblock_config.h])
+AC_CONFIG_FILES([GNUmakefile])
+AM_INIT_AUTOMAKE([foreign])
 
 dnl Checks for programs.
-AC_PROG_AWK
+# AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
-LT_INIT
+AC_PROG_RANLIB
+# LT_INIT
 
-dnl Checks for libraries.
+dnl ------------------------------------------------------------------------
+dnl headers
+dnl ------------------------------------------------------------------------
+# AC_CHECK_HEADERS([dlfcn.h errno.h inttypes.h stdint.h stdio.h stdlib.h string.h strings.h])
+AC_CHECK_HEADERS([errno.h])
+# AC_CHECK_HEADERS([sysexits.h sys/ioctl.h sys/types.h sys/wait.h])
+AC_CHECK_HEADERS([sysexits.h sys/ioctl.h sys/wait.h])
 
-dnl Checks for header files.
-AC_CHECK_HEADERS(errno.h fcntl.h sys/fcntl.h sys/ioctl.h sys/file.h unistd.h sysexits.h)
+AC_CHECK_HEADERS([sys/file.h fcntl.h sys/fcntl.h])
 
-AC_HEADER_SYS_WAIT
 
-dnl Checks for typedefs, structures, and compiler characteristics.
-
-AC_C_CONST
-AC_TYPE_OFF_T
+dnl ------------------------------------------------------------------------
+dnl types
+dnl ------------------------------------------------------------------------
 AC_TYPE_PID_T
-AC_SYS_LARGEFILE
-
-AC_CACHE_CHECK( [for off64_t], liblock_cv_hasoff64t,
-
-liblock_cv_hasoff64t="no"
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <sys/types.h>
-off64_t	n;
-]], [[
-
-	n=0;
-]])],[liblock_cv_hasoff64t="yes"],[])
-
-)
-
-if test "$liblock_cv_hasoff64t" = "yes"
+if test x"${ac_cv_type_pid_t}" = xyes
 then
-	LL_OFFSET_TYPE=off64_t
+  AC_DEFINE([HAVE_PID_T],1,[Defined to 1 if 'pid_t' type is available])
+fi
+
+dnl ------------------------------------------------------------------------
+dnl type for
+dnl * partial locking by fcntl(): struct flock.l_start & flock.l_len.
+dnl * partial locking by lseek(): type of the 2nd argument "offset".
+dnl According to System V Interface Definition Issue 2 Volume 1 (1986) p.76,
+dnl & p.101, the early System V used "long" for these variables.
+dnl ------------------------------------------------------------------------
+AC_TYPE_OFF_T
+if test x"${ac_cv_type_off_t}" = xyes
+then
+  AC_DEFINE([HAVE_OFF_T],1,[Defined to 1 if 'off_t' type is available])
+  AC_CHECK_TYPE([off64_t],[
+    AC_DEFINE([HAVE_OFF64_T],1,[Defined to 1 if 'off64_t' type is available])
+    ll_offset_type=off64_t
+  ],[
+    ll_offset_type=off_t
+  ],[
+#if HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+  ])
 else
-	LL_OFFSET_TYPE=off_t
+  ll_offset_type=long
 fi
-AC_DEFINE_UNQUOTED(LL_OFFSET_TYPE,$LL_OFFSET_TYPE,
-	[ Either off64_t or off_t ])
+AC_DEFINE_UNQUOTED([LL_OFFSET_TYPE],
+                   ${ll_offset_type},
+                   [Defined to off64_t if available, otherwise off_t])
 
-AC_CACHE_CHECK( [for flock_t], liblock_cv_hasflock_t,
-liblock_cv_hasflock_t="no"
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#if     HAVE_CONFIG_H
-#include        "config.h"
+dnl ------------------------------------------------------------------------
+dnl functions
+dnl ------------------------------------------------------------------------
+AC_CHECK_FUNCS([getdtablesize setpgrp sysconf],[],[])
+
+dnl ------------------------------------------------------------------------
+dnl flock() appeared in 4.2BSD and declared in <sys/file.h>
+dnl ------------------------------------------------------------------------
+use_flock=no
+AC_CHECK_FUNC([flock],[
+  AC_CHECK_DECL([flock(int, int)],[
+    AC_DEFINE([HAVE_FLOCK],1,[Defined to 1 if flock() is declared by <sys/file.h>])
+    use_flock=yes
+  ],[],[
+#if HAVE_SYS_FILE_H
+# include <sys/file.h>
 #endif
-#include        <sys/types.h>
-#if     HAVE_FCNTL_H
-#include        <fcntl.h>
+  ])
+],[])
+
+dnl ------------------------------------------------------------------------
+dnl According to X/Open System Interface and Headers Issue 4 Volume 2 p.362,
+dnl lockf() should be declared in <unistd.h>.
+dnl According to System V Interface Definition Issue 2 Volume 1 (1986) p.98,
+dnl the 3rd argument was originally typed as "long" in SVR1 and SVR2.
+dnl ------------------------------------------------------------------------
+use_lockf=no
+AC_CHECK_FUNC([lockf],[
+  AC_CHECK_DECL([lockf(int, int, off_t)],[
+    AC_DEFINE([HAVE_LOCKF],1,[Defineed to 1 if lockf() is declared by <unistd.h>])
+    use_lockf=yes
+  ],[],[
+#if HAVE_UNISTD_H
+# include <unistd.h>
 #endif
-#if     HAVE_SYS_FCNTL_H
-#include        <sys/fcntl.h>
+#if HAVE_OFF_T
+#else
+/* for early System V without "off_t" */ 
+typedef long off_t;
 #endif
-flock_t t;
-]], [[
-]])],[liblock_cv_hasflock_t="yes"],[]))
+  ])
+],[])
 
-if test "$liblock_cv_hasflock_t" = "yes"
+dnl ------------------------------------------------------------------------
+dnl According to X/Open System Interface and Headers Issue 4 Volume 2 p.176,
+dnl fcntl() should be declared in <fcntl.h>. Also <sys/types.h> & <unistd.h>
+dnl should be included to use it.
+dnl ------------------------------------------------------------------------
+AC_DEFUN([AX_FCNTL_HEADERS],[
+#if HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#if HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+#if HAVE_FCNTL_H
+# include <fcntl.h>
+#endif
+#if HAVE_SYS_FCNTL_H
+# include <sys/fcntl.h>
+#endif
+])
+
+
+AC_CHECK_FUNC([fcntl],[
+  AC_CHECK_DECL([fcntl(int, int, ...)],[
+    ac_cv_func_fcntl=yes
+    AC_DEFINE([HAVE_FCNTL],1,[Defined to 1 if fcntl() is declared by <unistd.h>])
+  ],[
+    ac_cv_func_fcntl=no
+  ],[AX_FCNTL_HEADERS])
+],[])
+
+dnl ------------------------------------------------------------------------
+dnl According to System V Interface Definition Issue 2 Volume 1 (1986) p.76,
+dnl locking features of fcntl() was added after System V Release 2.0.
+dnl For availability check, the macros for locking features and flock_t type
+dnl should be tested.
+dnl ------------------------------------------------------------------------
+use_fcntl=no
+if test x"${ac_cv_func_fcntl}" = xyes
 then
-	AC_DEFINE_UNQUOTED(HAS_FLOCK_T,1,[ Whether flock_t is defined ])
+  AC_CHECK_DECLS([F_SETLK, F_SETLKW, F_RDLCK, F_WRLCK, F_UNLCK],[],[],[AX_FCNTL_HEADERS])
+  AC_CHECK_TYPE([flock_t],[
+    AC_DEFINE([HAVE_FLOCK_T],1,[Defined to 1 if 'flock_t' type is available])
+    use_fcntl=yes
+  ],[
+    AC_CHECK_MEMBER([struct flock.l_type],[
+      use_fcntl=yes
+      AC_DEFINE([HAVE_STRUCT_FLOCK],1,[Defined to 1 if 'struct flock' is valid])
+    ],[],[AX_FCNTL_HEADERS])
+  ],[AX_FCNTL_HEADERS])
 fi
 
-dnl Checks for library functions.
-
-AC_CHECK_FUNCS(getdtablesize setpgrp sysconf)
-AC_CHECK_FUNC(setpgrp,
-	[
-	AC_FUNC_SETPGRP
-	]
-)
-
-AC_CACHE_CHECK( [for fcntl], liblock_cv_hasfcntl,
-liblock_cv_hasfcntl="no"
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#define	LL_OFFSET_TYPE	$LL_OFFSET_TYPE
-#include "${srcdir}/lockfcntl.c"
-int n;
-]], [[
-]])],[liblock_cv_hasfcntl="yes"],[]))
-if test "$liblock_cv_hasfcntl" = "yes"
+dnl ------------------------------------------------------------------------
+dnl Testing the compilations of locktest.c
+dnl ------------------------------------------------------------------------
+if test -d empty
 then
-	AC_DEFINE_UNQUOTED(HAS_FCNTL,1,
-		[ Whether fcntl() available ])
+  rm -r -f empty
+fi
+mkdir empty
+touch empty/liblock_config.h
+orig_CFLAGS="${CFLAGS}"
+
+CFLAGS="${LIBLOCK_CFLAGS} -DUSE_FCNTL -UUSE_FLOCK -UUSE_LOCKF -Iempty ${CFLAGS}"
+if test x"${use_fcntl}" = xyes
+then
+  AC_MSG_CHECKING([locktest.c is compilable for fcntl])
+  dnl AC_LINK_IFELSE([AC_LANG_SOURCE([[#include "locktest.c"]])],[
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[#include "locktest.c"]])],[
+    AC_MSG_RESULT([yes])
+  ],[
+    AC_MSG_RESULT([no])
+    use_fcntl=no
+  ],[
+    AC_MSG_RESULT([skip])
+  ])
 fi
 
-AC_CACHE_CHECK( [for flock], liblock_cv_hasflock,
-liblock_cv_hasflock="no"
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#define	LL_OFFSET_TYPE	$LL_OFFSET_TYPE
-#include "${srcdir}/lockflock.c"
-int n;
-]], [[
-]])],[liblock_cv_hasflock="yes"],[]))
-if test "$liblock_cv_hasflock" = "yes"
+CFLAGS="${LIBLOCK_CFLAGS} -UUSE_FCNTL -DUSE_FLOCK -UUSE_LOCKF -Iempty ${CFLAGS}"
+if test x"${use_flock}" = xyes
 then
-	AC_DEFINE_UNQUOTED(HAS_FLOCK,1,
-		[ Whether flock() is available ])
+  AC_MSG_CHECKING([locktest.c is compilable for flock])
+  dnl AC_LINK_IFELSE([AC_LANG_SOURCE([[#include "locktest.c"]])],[
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[#include "locktest.c"]])],[
+    AC_MSG_RESULT([yes])
+  ],[
+    AC_MSG_RESULT([no])
+    use_flock=no
+  ],[
+    AC_MSG_RESULT([skip])
+  ])
 fi
 
-AC_CACHE_CHECK( [for lockf], liblock_cv_haslockf,
-liblock_cv_haslockf="no"
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#define	LL_OFFSET_TYPE	$LL_OFFSET_TYPE
-#include "${srcdir}/locklockf.c"
-int n;
-]], [[
-]])],[liblock_cv_haslockf="yes"],[]))
-if test "$liblock_cv_haslockf" = "yes"
+
+CFLAGS="${LIBLOCK_CFLAGS} -UUSE_FCNTL -UUSE_FLOCK -DUSE_LOCKF -Iempty ${CFLAGS}"
+if test x"${use_lockf}" = xyes
 then
-	AC_DEFINE_UNQUOTED(HAS_LOCKF,1,
-		[ Whether lockf() is available ])
+  AC_MSG_CHECKING([locktest.c is compilable for lockf])
+  dnl AC_LINK_IFELSE([AC_LANG_SOURCE([[#include "locktest.c"]])],[
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[#include "locktest.c"]])],[
+    AC_MSG_RESULT([yes])
+  ],[
+    AC_MSG_RESULT([no])
+    use_lockf=no
+  ],[
+    AC_MSG_RESULT([skip])
+  ])
 fi
 
-AC_MSG_CHECKING(for locking method)
-AC_ARG_WITH(locking-method, [], lockmethod="$withval", lockmethod="")
+CFLAGS="${orig_CFLAGS}"
+rm -r -f empty
 
-case x$lockmethod in
-xfcntl)
-	AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#define USE_FCNTL 1
-#define	LL_OFFSET_TYPE	$LL_OFFSET_TYPE
-#include "${srcdir}/locktest.c"
-]])],[],[AC_MSG_ERROR(fcntl test failed.)],[:
-	])
-	;;
-x)
-	AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#define USE_FCNTL 1
-#define	LL_OFFSET_TYPE	$LL_OFFSET_TYPE
-#include "${srcdir}/locktest.c"
-]])],[lockmethod=fcntl],[],[AC_MSG_ERROR(--with-locking-method option required)])
-	;;
-esac
+dnl ------------------------------------------------------------------------
+dnl select a backend from fcntl(), flock(), or lockf()
+dnl ------------------------------------------------------------------------
 
-case x$lockmethod in
-xlockf)
-	AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#define USE_LOCKF 1
-#define	LL_OFFSET_TYPE	$LL_OFFSET_TYPE
-#include "${srcdir}/locktest.c"
-]])],[],[AC_MSG_ERROR(lockf test failed.)],[:
-	])
-	;;
-x)
-	AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#define USE_LOCKF 1
-#define	LL_OFFSET_TYPE	$LL_OFFSET_TYPE
-#include "${srcdir}/locktest.c"
-]])],[lockmethod=lockf],[],[AC_MSG_ERROR(--with-locking-method option required)])
-	;;
-esac
+if test x"${use_fcntl}" = xyes
+then
+  AC_MSG_WARN([use fcntl() to lock a (part of) file])
+  use_flock=no
+  use_lockf=no
+elif test x"${use_flock}" = xyes
+then
+  AC_MSG_WARN([use flock() to lock a (part of) file])
+  use_fcntl=no
+  use_lockf=no
+elif test x"${use_lockf}" = xyes
+then
+  AC_MSG_WARN([use lockf() to lock a (part of) file])
+  use_fcntl=no
+  use_flock=no
+else
+  AC_MSG_ERROR([no file locking mechanism is available])
+fi
 
+AM_CONDITIONAL([USE_FCNTL],[test x"${use_fcntl}" = xyes])
+AM_CONDITIONAL([USE_FLOCK],[test x"${use_flock}" = xyes])
+AM_CONDITIONAL([USE_LOCKF],[test x"${use_lockf}" = xyes])
 
-case x$lockmethod in
-xflock)
-	AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#define USE_FLOCK 1
-#define	LL_OFFSET_TYPE	$LL_OFFSET_TYPE
-#include "${srcdir}/locktest.c"
-]])],[],[AC_MSG_ERROR(flock test failed.)],[:
-	])
-	;;
-x)
-	AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#define USE_FLOCK 1
-#define	LL_OFFSET_TYPE	$LL_OFFSET_TYPE
-#include "${srcdir}/locktest.c"
-]])],[lockmethod=flock],[],[AC_MSG_ERROR(--with-locking-method option required)])
-	;;
-esac
-
-case x$lockmethod in
-xlockf)
-	;;
-xflock)
-	;;
-xfcntl)
-	;;
-*)
-	AC_MSG_ERROR(must specify --with-locking-method option)
-	;;
-esac
-
-AC_MSG_RESULT($lockmethod)
-
-AM_CONDITIONAL(USE_FCNTL, test "$lockmethod" = "fcntl")
-AM_CONDITIONAL(USE_FLOCK, test "$lockmethod" = "flock")
-AM_CONDITIONAL(USE_LOCKF, test "$lockmethod" = "lockf")
-
-AM_CONDITIONAL(HAVE_SGML, test -d ${srcdir}/../docbook)
-
-AC_DEFINE_UNQUOTED(liblock_config_h,1, [liblock/config.h has been read])
-
-AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

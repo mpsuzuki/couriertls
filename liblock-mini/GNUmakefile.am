@@ -1,0 +1,20 @@
+#
+# Copyright 1998 - 2002 Double Precision, Inc.  See COPYING for
+# distribution information.
+#
+
+EXTRA_DIST = lockfcntl.c lockflock.c locklockf.c locktest.c $(noinst_DATA)
+noinst_LIBRARIES = liblock.a
+liblock_a_SOURCES = liblock.h
+
+if USE_FCNTL
+  liblock_a_SOURCES += lockfcntl.c
+endif
+
+if USE_FLOCK
+  liblock_a_SOURCES += lockflock.c
+endif
+
+if USE_LOCKF
+  liblock_a_SOURCES += locklockf.c
+endif

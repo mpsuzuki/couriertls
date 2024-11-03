@@ -3,9 +3,7 @@
 ** distribution information.
 */
 
-#if	HAVE_CONFIG_H
-#include	"config.h"
-#endif
+#include	"liblock.h"
 #include	<sys/types.h>
 #if	HAVE_FCNTL_H
 #include	<fcntl.h>
@@ -13,7 +11,6 @@
 #if	HAVE_SYS_FCNTL_H
 #include	<sys/fcntl.h>
 #endif
-#include	"liblock.h"
 
 int	ll_lockfd(int fd, int ltype, LL_OFFSET_TYPE start, LL_OFFSET_TYPE len)
 {

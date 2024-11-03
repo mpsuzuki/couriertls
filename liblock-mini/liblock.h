@@ -11,11 +11,7 @@
 extern "C" {
 #endif
 
-#if	HAVE_LIBLOCK_CONFIG_H
-#include	"liblock/config.h"
-#elif	HAVE_CONFIG_H
-#include	"config.h"
-#endif
+#include	"liblock_config.h"
 #include	<sys/types.h>
 
 #define	ll_whence_start	0
