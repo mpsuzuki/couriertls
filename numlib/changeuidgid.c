@@ -3,9 +3,7 @@
 ** distribution information.
 */
 
-#if	HAVE_CONFIG_H
-#include	"config.h"
-#endif
+#include	"numlib.h"
 #include	<sys/types.h>
 #if	HAVE_UNISTD_H
 #include	<unistd.h>
@@ -16,8 +14,6 @@
 #include	<grp.h>
 #include	<pwd.h>
 #include	<errno.h>
-
-#include	"numlib.h"
 
 
 void libmail_changegroup(gid_t gid)
