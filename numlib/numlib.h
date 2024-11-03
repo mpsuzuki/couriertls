@@ -11,11 +11,7 @@ extern "C" {
 #endif
 
 
-#if	HAVE_NUMLIB_CONFIG_H
-#include	"numlib/config.h"
-#elif	HAVE_CONFIG_H
-#include	"config.h"
-#endif
+#include	"numlib_config.h"
 
 #if	HAVE_STDINT_H
 #include	<stdint.h>
