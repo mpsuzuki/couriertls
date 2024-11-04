@@ -2,9 +2,10 @@ dnl
 dnl Copyright 1998 - 2004 Double Precision, Inc.  See COPYING for
 dnl distribution information.
 
+rm -f liblock_config.h
 AC_INIT([liblock-mini],[0.60],[https://gitlab.com/mpsuzuki/couriertls-server/-/issues])
 
-AC_CONFIG_HEADERS([liblock_config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([GNUmakefile])
 AM_INIT_AUTOMAKE([foreign])
 
@@ -44,12 +45,19 @@ then
   AC_DEFINE([HAVE_OFF_T],1,[Defined to 1 if 'off_t' type is available])
   AC_CHECK_TYPE([off64_t],[
     AC_DEFINE([HAVE_OFF64_T],1,[Defined to 1 if 'off64_t' type is available])
-  ],[],[
+    LL_OFFSET_TYPE=off64_t
+  ],[
+    LL_OFFSET_TYPE=off_t
+  ],[
 #if HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
   ])
+else
+  LL_OFFSET_TYPE=long
 fi
+AC_SUBST([LL_OFFSET_TYPE])
+AC_CONFIG_FILES([liblock_config.h:liblock_config.h.in])
 
 dnl ------------------------------------------------------------------------
 dnl functions
@@ -62,7 +70,10 @@ dnl ------------------------------------------------------------------------
 AX_CHECK_FCNTL_LOCKING([use_fcntl=yes],[use_fcntl=no])
 AX_CHECK_FLOCK([use_flock=yes],[use_flock=no])
 AX_CHECK_LOCKF([use_lockf=yes],[use_lockf=no])
-AX_LOCKTEST([AC_LANG_SOURCE([[#include "locktest.c"]])], use_fcntl, use_flock, use_lockf)
+AX_LOCKTEST([AC_LANG_SOURCE([[#include "locktest.c"]])],
+                            [-DLL_OFFSET_TYPE=${LL_OFFSET_TYPE}],
+                            liblock_config.h,
+                            use_fcntl, use_flock, use_lockf)
 
 dnl ------------------------------------------------------------------------
 dnl select a backend from fcntl(), flock(), or lockf()

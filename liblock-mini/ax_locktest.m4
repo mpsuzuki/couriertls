@@ -1,9 +1,11 @@
 dnl ------------------------------------------------------------------------
 dnl Testing the compilations of locktest.c
 dnl $1: AC_LANG_SOURCE([[#include "locktest.c"]])
-dnl $2: use_fcntl
-dnl $3: use_flock
-dnl $4: use_lockf
+dnl $2: CFLAGS
+dnl $3: liblock_config.h /* to be empty */
+dnl $4: use_fcntl
+dnl $5: use_flock
+dnl $6: use_lockf
 dnl ------------------------------------------------------------------------
 
 AC_DEFUN([AX_LOCKTEST],[
@@ -12,47 +14,47 @@ AC_DEFUN([AX_LOCKTEST],[
     rm -r -f empty
   fi
   mkdir empty
-  touch empty/config.h
+  touch empty/$3
   orig_CFLAGS="${CFLAGS}"
 
-  CFLAGS="${LIBLOCK_CFLAGS} -DUSE_FCNTL -UUSE_FLOCK -UUSE_LOCKF -Iempty ${CFLAGS}"
-  if test x"$$2" = xyes
+  CFLAGS="$2 -DUSE_FCNTL -UUSE_FLOCK -UUSE_LOCKF -Iempty ${CFLAGS}"
+  if test x"$$4" = xyes
   then
     AC_MSG_CHECKING([lock testing code is compilable for fcntl])
     AC_RUN_IFELSE([$1],[
       AC_MSG_RESULT([yes])
     ],[
       AC_MSG_RESULT([no])
-      $2=no
+      $4=no
     ],[
       AC_MSG_RESULT([skip])
     ])
   fi
 
-  CFLAGS="${LIBLOCK_CFLAGS} -UUSE_FCNTL -DUSE_FLOCK -UUSE_LOCKF -Iempty ${CFLAGS}"
-  if test x"$$3" = xyes
+  CFLAGS="$2 -UUSE_FCNTL -DUSE_FLOCK -UUSE_LOCKF -Iempty ${CFLAGS}"
+  if test x"$$5" = xyes
   then
     AC_MSG_CHECKING([lock testing code is compilable for flock])
     AC_RUN_IFELSE([$1],[
       AC_MSG_RESULT([yes])
     ],[
       AC_MSG_RESULT([no])
-      $3=no
+      $5=no
     ],[
       AC_MSG_RESULT([skip])
     ])
   fi
 
 
-  CFLAGS="${LIBLOCK_CFLAGS} -UUSE_FCNTL -UUSE_FLOCK -DUSE_LOCKF -Iempty ${CFLAGS}"
-  if test x"$$4" = xyes
+  CFLAGS="$2 -UUSE_FCNTL -UUSE_FLOCK -DUSE_LOCKF -Iempty ${CFLAGS}"
+  if test x"$$6" = xyes
   then
     AC_MSG_CHECKING([lock testing code is compilable for lockf])
     AC_RUN_IFELSE([$1],[
       AC_MSG_RESULT([yes])
     ],[
       AC_MSG_RESULT([no])
-      $4=no
+      $6=no
     ],[
       AC_MSG_RESULT([skip])
     ])

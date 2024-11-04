@@ -11,6 +11,10 @@
 extern "C" {
 #endif
 
+#if	HAVE_CONFIG_H && !defined(PACKAGE)
+# include	"config.h"
+#endif
+
 #include	"liblock_config.h"
 #include	<sys/types.h>
 
