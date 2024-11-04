@@ -3,14 +3,23 @@
 ** See COPYING for distribution information.
 */
 #include	"config.h"
-#include	"numlib/numlib.h"
-#if USE_LIBLOCK_MINI
-# include	"liblock-mini/config.h"
-# include	"liblock-mini/liblock.h"
-#else
+
+#if	HAVE_NUMLIB_CONFIG_H
+  /* original numlib */
+# include	"numlib/config.h"
+# include	"numlib/numlib.h"
+#else /* included numlib-mini */
+# include	"numlib.h"
+#endif
+
+#if	HAVE_LIBLOCK_CONFIG_H
+  /* original liblock */
 # include	"liblock/config.h"
 # include	"liblock/liblock.h"
+#else /* included liblock-mini */
+# include	"liblock.h"
 #endif
+
 #include	<stdio.h>
 #include	<string.h>
 #include	<stdlib.h>
