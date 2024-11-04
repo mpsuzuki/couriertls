@@ -13,7 +13,7 @@ AC_CONFIG_SRCDIR(starttls.c)
 # AC_CONFIG_AUX_DIR(../..)
 LPATH="$PATH:/usr/local/bin"
 AC_CONFIG_HEADERS(config.h)
-AC_CONFIG_SUBDIRS([liblock-mini numlib soxwrap])
+AC_CONFIG_SUBDIRS([liblock-mini numlib-mini soxwrap])
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -306,10 +306,10 @@ AC_CHECK_HEADER([numlib/config.h],[
   AC_DEFINE([HAVE_NUMLIB_CONFIG_H],[1],[Defined to 1 if numlib/config.h is available])
 ])
 AC_CHECK_HEADER([numlib.h],[
-  NUMLIB_CPPFLAGS=""
+  NUMLIB_CPPFLAGS=
 ],[
-  AC_MSG_WARN([use included copy of 'numlib'])
-  NUMLIB_CPPFLAGS='-I$(top_builddir)/numlib -I$(top_srcdir)/numlib'
+  AC_MSG_WARN([use included copy of 'numlib-mini'])
+  NUMLIB_CPPFLAGS='-I$(top_builddir)/numlib-mini -I$(top_srcdir)/numlib-mini'
 ])
 AC_SUBST([NUMLIB_CPPFLAGS])
 

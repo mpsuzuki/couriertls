@@ -1,7 +1,7 @@
 # -------------------------------------------------
 # SSL-implementation independent part 
 # 
-SUBDIRS = liblock-mini numlib soxwrap
+SUBDIRS = liblock-mini numlib-mini soxwrap
 bin_PROGRAMS =
 noinst_LIBRARIES = libspipe.a
 
