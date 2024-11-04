@@ -48,8 +48,10 @@ then
 	CXXFLAGS="-Wall $CXXFLAGS"
 fi
 
-CFLAGS="-I$srcdir/.. -I.. -I$srcdir/../.. -I../.. $CFLAGS"
-CXXFLAGS="-I$srcdir/.. -I.. -I$srcdir/../.. -I../.. $CXXFLAGS"
+#CFLAGS="-I$srcdir/.. -I.. -I$srcdir/../.. -I../.. $CFLAGS"
+CFLAGS="-I$builddir -I$srcdir $CFLAGS"
+#CXXFLAGS="-I$srcdir/.. -I.. -I$srcdir/../.. -I../.. $CXXFLAGS"
+CXXFLAGS="-I$builddir -I$srcdir $CXXFLAGS"
 
 AC_PATH_PROG(KRB5CONFIG, krb5-config, krb5-config, $SPATH)
 
