@@ -4,7 +4,7 @@ dnl Copyright 1998 - 2008 Double Precision, Inc.  See COPYING for
 dnl distribution information.
 
 AC_PREREQ([2.62])
-AC_INIT([couriertls],[0.11.20241101],[https://gitlab.com/mpsuzuki/couriertls/-/issues])
+AC_INIT([couriertls-server],[0.11.20241101],[https://gitlab.com/mpsuzuki/couriertls/-/issues])
 AM_INIT_AUTOMAKE([foreign])
 
 # >confdefs.h  # Kill PACKAGE_ macros
