@@ -3,7 +3,7 @@ dnl
 dnl Copyright 1998 - 2010 Double Precision, Inc.  See COPYING for
 dnl distribution information.
 
-AC_INIT([numlib],[0.10],[https://gitlab.com/mpsuzuki/couriertls-server/-/issues])
+AC_INIT([numlib-mini],[0.10],[https://gitlab.com/mpsuzuki/couriertls-server/-/issues])
 
 #>confdefs.h  # Kill PACKAGE_ macros
 
