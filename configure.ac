@@ -295,7 +295,7 @@ AC_CHECK_LIB([lock], [ll_lockfd], [
   LIBLOCK_LIBS=-llock
 ], [
   AC_MSG_WARN([use included copy of 'liblock-mini'])
-  LIBLOCK_CFLAGS='-I$(top_builddir) -I$(top_srcdir)'
+  LIBLOCK_CFLAGS='-I$(top_builddir)/liblock-mini -I$(top_srcdir)/liblock-mini'
   LIBLOCK_LIBS='-L$(top_builddir)/liblock-mini -llock'
   AC_DEFINE([USE_LIBLOCK_MINI],[1],[Define 1 to use included copy of 'liblock-mini'])
 ])
