@@ -4,6 +4,9 @@
 SUBDIRS = liblock-mini numlib-mini soxwrap
 bin_PROGRAMS =
 noinst_LIBRARIES = libspipe.a
+EXTRA_DIST = \
+	random128/random128.h \
+	rfc1035/rfc1035.h rfc1035/rfc1035mxlist.h rfc1035/spf.h
 
 couriertls_SOURCES = \
 	argparse.c argparse.h \
