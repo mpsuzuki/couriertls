@@ -329,6 +329,68 @@ AC_SUBST([SOXWRAP_CPPFLAGS])
 PKG_CHECK_MODULES([IDN2],[libidn2])
 PKG_CHECK_MODULES([P11KIT],[p11-kit-1])
 
+# Checks for random device
+AC_ARG_WITH(random_device,
+[  --with-random-device=<pathname_to_read_random>	/dev/urandom, /dev/random, or named socket to EGD/PRNG],
+[
+  case $withval in
+  \".*\")
+    random_device=$withval
+    ;;
+  *)
+    random_device=\"$withval\"
+    ;;
+  esac
+])
+
+if test x"${cross_compiling}" = xyes -a x"${RANDOM_DEVICE}" = x
+then
+  AC_MSG_ERROR([In cross compilation, you must specify --with-random-device=<random_device_pathname>])
+else
+  AC_CHECK_FILES([/dev/urandom],[
+    have__dev_urandom=yes
+    AC_DEFINE([HAVE__DEV_RANDOM],1,[Defined to 1 if /dev/urandom is available])
+  ],[])
+  AC_CHECK_FILES([/dev/random],[
+    have__dev_random=yes
+    AC_DEFINE([HAVE__DEV_RANDOM],1,[Defined to 1 if /dev/random is available])
+  ],[])
+fi
+
+if test x"${random_device}" != x
+then
+  AC_MSG_WARN(${random_device} would be used as the random device to connect to $PRNGD)
+elif test x"${have__dev_urandom}" = xyes -a x"${have__dev_random}" = xyes
+then
+  # POSIX allows /dev/random and /dev/urandom use different algorithms suitable for their purposes.
+  # a) /dev/random is more random, but may be slow and read() may be blocked.
+  # b) /dev/urandom is less random, but may be fast and read() would not be blocked.
+  # In some systems, like FreeBSD, urandom is a symbolic link to random.
+  case "${host_os}" in
+  *linux*)
+    random_device='"/dev/random"'
+    ;;
+  *)
+    random_device='"/dev/urandom"'
+    ;;
+  esac
+elif test x"${have__dev_urandom}" = xyes
+then
+  random_device='"/dev/urandom"'
+elif test x"${have__dev_random}" = xyes
+then
+  random_device='"/dev/random"'
+else
+  AC_CHECK_PROGS([PRNGD],[egd prngd],[
+    AC_MSG_ERROR([No random device file, and EGD, or PRNGD is found])
+  ],[])
+  AC_MSG_ERROR(${PRNGD} is found, --with-random-device=<random_device_pathname> is required to use it])
+fi
+AC_DEFINE_UNQUOTED([RANDOM_DEVICE],[${random_device}],[Pathname to the random device file, or socket to EGD/PRNG])
+RANDOM_DEVICE=${random_device}
+AC_SUBST([RANDOM_DEVICE])
+
+
 AC_CHECK_HEADER(openssl/ssl.h,have_ssl_h=yes,have_ssl_h=no)
 AC_CHECK_LIB(ssl, SSL_load_error_strings, have_ssl=yes, have_ssl=no,
 	-lcrypto)
