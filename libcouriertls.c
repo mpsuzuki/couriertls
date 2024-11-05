@@ -1034,10 +1034,35 @@ SSL_CTX *tls_create_int(int isserver, const struct tls_info *info,
 
 			while (RAND_status() != 1)
 			{
+#ifdef	RANDOM_DEVICE
+				const size_t	len_bit = 128;
+				const size_t	len_octet = (len_bit / 8);
+				unsigned char	buff[(len_octet * 2) + 1];
+				int	fd_rnd = -1;
+				int	i = 0;
+
+				fd_rnd = open(RANDOM_DEVICE, O_RDONLY);
+				if (fd_rnd < 0) {
+					nonsslerror(info, "Could not open random device file");
+					return (NULL);
+				}
+
+				if (read(fd_rnd, buff + len_octet, len_octet) < len_octet) {
+					nonsslerror(info, "read() for random device resulted shorter than request");
+					return (NULL);
+				}
+				close(fd_rnd);
+
+				for (i = 0; i < len_octet; i++)
+					snprintf((char*)buff + (i*2), 3, "%02X", buff[len_octet + i]);
+
+				RAND_add(buff, len_octet, len_octet/16);
+#else
 				const char *p=random128();
 				size_t l=strlen(p);
 
 				RAND_add(p, l, l/16);
+#endif
 			}
 #endif
 		}
