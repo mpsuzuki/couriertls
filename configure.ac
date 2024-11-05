@@ -465,7 +465,7 @@ AC_SUBST(gnutlsdep)
 
 # Choose GnuTLS or OpenSSL
 
-AC_ARG_WITH(gnutls, [ --with-gnutls     Use GnuTLS even if OpenSSL is available],
+AC_ARG_WITH(gnutls, [  --with-gnutls     Use GnuTLS even if OpenSSL is available],
 		    [
 
 if test "$withval" = "yes"
