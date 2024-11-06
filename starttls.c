@@ -508,6 +508,10 @@ static struct args arginfo[] = {
 	{ "tcpd", &tcpd},
 	{ "verify", &peer_verify_domain},
 	{ "statusfd", &statusfd},
+
+	/* following options are accepted for back-compatibility, but no effect */
+	{ "server", 0, NULL},
+
 	{0}};
 void (*protocol_func)(int)=0;
 
