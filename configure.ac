@@ -338,8 +338,29 @@ AC_CHECK_LIB(ssl, SSL_load_error_strings, have_ssl=yes, have_ssl=no,
 	-lcrypto)
 AC_CHECK_LIB(ssl, SSL_library_init, have_ssl=yes)
 AC_CHECK_LIB(ssl, OPENSSL_init_ssl, have_ssl=yes)
+if test x"${have_ssl}" = xyes
+then
+  AC_MSG_CHECKING([whether static link flag for openssl works])
+  orig_CFLAGS="${CFLAGS}"
+  orig_LIBS="${LIBS}"
+  CFLAGS="${CFLAGS} "`${PKG_CONFIG} --cflags openssl`
+  LIBS="-static ${LIBS} "`${PKG_CONFIG} --libs --static openssl`
+  AC_LINK_IFELSE([
+                   AC_LANG_PROGRAM([[#include <openssl/ssl.h>]],
+                                   [[SSL_CTX_new(TLS_server_method());]])
+                 ],[
+                   AC_MSG_RESULT(yes)
+                   OPENSSL_LIBS_STATIC="-static "`${PKG_CONFIG} --libs --static openssl`
+                   IDN2_LIBS_STATIC=`${PKG_CONFIG} --libs --static libidn2`
+                 ],[
+                   AC_MSG_RESULT(no)
+                 ])
+  CFLAGS="${orig_CFLAGS}"
+  LIBS="${orig_LIBS}"
+fi
 
 AM_CONDITIONAL(HAVE_OPENSSL, [test "x${have_ssl}" = xyes])
+AC_SUBST([OPENSSL_LIBS_STATIC])
 
 if test "$have_ssl" = "yes"
 then
@@ -385,7 +406,12 @@ then
 		fi
 	fi
 	# openssldep="-lssl -lcrypto $KRBLIBS $NETLIBS ../random128/librandom128.la"
-	openssldep="-lssl -lcrypto $KRBLIBS $NETLIBS"
+	if test "x${OPENSSL_LIBS_STATIC}" != "x"
+	then
+		openssldep="${OPENSSL_LIBS_STATIC} ${IDN2_LIBS_STATIC} $KRBLIBS $NETLIBS"
+	else
+		openssldep="-lssl -lcrypto $KRBLIBS $NETLIBS"
+	fi
 fi
 
 # GnuTLS
