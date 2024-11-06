@@ -19,7 +19,8 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
-LT_INIT
+AC_PROG_RANLIB
+# LT_INIT
 
 SPATH="$LPATH:/usr/kerberos/bin"
 
