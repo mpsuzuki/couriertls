@@ -60,6 +60,7 @@
 
 /* Command-line options: */
 
+const char *debug=0;
 const char *localfd=0;
 const char *remotefd=0;
 const char *statusfd=0;
@@ -499,6 +500,8 @@ int main(int argc, char **argv)
 int	argn;
 int	fd;
 static struct args arginfo[] = {
+	{ "debug", &debug },
+
 	{ "localfd", &localfd},
 	{ "printx509", &printx509},
 	{ "remotefd", &remotefd},

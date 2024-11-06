@@ -9,6 +9,8 @@
 
 #include	"config.h"
 
+extern	const char* debug;
+
 struct args {
 	const char *name;
 	const char **valuep;

@@ -45,6 +45,9 @@ int	i;
 			*s[i].valuep=p;
 		else if (s[i].funcp)
 			(*s[i].funcp)(p);
+		else if (debug)
+			fprintf(stderr, "%s: Accepted but ignored option: %s\n",
+				argv[0], argv[argn]);
 		++argn;
 	}
 	return (argn);
