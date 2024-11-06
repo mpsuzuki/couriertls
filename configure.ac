@@ -448,15 +448,52 @@ AM_CONDITIONAL(HAVE_GNUTLS, [test "x${have_gnutls}" = xyes])
 
 if test "$have_gnutls" = "yes"
 then
+	CFLAGS_orig="${CFLAGS}"
+	LIBS_orig="${LIBS}"
+	AC_MSG_CHECKING([whether static link flag for gnutls works])
+	CFLAGS="${CFLAGS} "`${PKG_CONFIG} --cflags gnutls`
+	LIBS="-static ${LIBS} "`${PKG_CONFIG} --libs --static gnutls`
+	AC_LINK_IFELSE([ AC_LANG_PROGRAM(
+				[[#include <gnutls/gnutls.h>]],
+				[[gnutls_global_init();]]	)
+			],[
+				AC_MSG_RESULT(yes)
+				GNUTLS_LIBS_STATIC="-static "`${PKG_CONFIG} --libs --static gnutls`
+       			],[
+				AC_MSG_RESULT(no)
+				AC_MSG_CHECKING([whether static link flag for gnutls lacks -lm])
+				# XXX "-lm" is not sufficiently portable, search math library
+				LIBS="${LIBS} -lm"
+				AC_LINK_IFELSE([
+					AC_LANG_PROGRAM(
+						[[#include <gnutls/gnutls.h>]],
+						[[gnutls_global_init();]]	)
+				],[
+					AC_MSG_RESULT(yes)
+					GNUTLS_LIBS_STATIC="-static "`${PKG_CONFIG} --libs --static gnutls`" -lm"
+				],[
+					AC_MSG_RESULT(no)
+				])
+			])
+	CFLAGS="${CFLAGS_orig}"
+	LIBS="${LIBS_orig}"
+	AC_SUBST([GNUTLS_LIBS_STATIC])
+
+
 	LIBCOURIERTLSGNUTLS="libcouriertlsgnutls.la"
 	CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gnutls`"
 	have_gnutls3=no
 	PKG_CHECK_EXISTS([gnutls >= 3.0], [have_gnutls3=yes])
+	if test "x${GNUTLS_LIBS_STATIC}" != "x"
+	then
+		gnutlsdep="{$GNUTLS_LIBS_STATIC}"
+	else
+		gnutlsdep=`$PKG_CONFIG --libs gnutls`
+	fi
 	if test "x$have_gnutls3" = "xno"
 	then
-		gnutlsdep="`$PKG_CONFIG --libs gnutls` -lgnutls-extra"
+		gnutlsdep="${gnutlsdep} -lgnutls-extra"
 	else
-		gnutlsdep="`$PKG_CONFIG --libs gnutls`"
 		AC_DEFINE([HAVE_GNUTLS3], [1], [Use GnuTLS3])
 	fi
 
