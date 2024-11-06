@@ -7,7 +7,6 @@
 #include	"spipe.h"
 #include	"libcouriertls.h"
 #include	"tlscache.h"
-#include	"soxwrap/soxwrap.h"
 #include	<gnutls/gnutls.h>
 #ifndef HAVE_GNUTLS3
 #include	<gnutls/extra.h>
