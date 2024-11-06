@@ -43,7 +43,7 @@ int	i;
 		if (*p)	++p;
 		if (s[i].valuep)
 			*s[i].valuep=p;
-		else
+		else if (s[i].funcp)
 			(*s[i].funcp)(p);
 		++argn;
 	}
