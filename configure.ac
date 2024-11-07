@@ -516,7 +516,7 @@ then
 	PKG_CHECK_EXISTS([gnutls >= 3.0], [have_gnutls3=yes])
 	if test "x${GNUTLS_LIBS_STATIC}" != "x"
 	then
-		gnutlsdep="{$GNUTLS_LIBS_STATIC}"
+		gnutlsdep="${GNUTLS_LIBS_STATIC}"
 	else
 		gnutlsdep=`$PKG_CONFIG --libs gnutls`
 	fi
