@@ -459,7 +459,16 @@ then
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
-				have_gnutls=no
+				AX_CHECK_PKG_LIBS_NEEDS_RPATH([gnutls],[
+					AC_LANG_PROGRAM([[#include <gnutls/gnutls.h>]],
+							[[gnutls_global_init();]])
+				],[
+					AC_MSG_RESULT([yes])
+					have_gnutls=yes
+				],[
+					AC_MSG_RESULT([no])
+					have_gnutls=no
+				])
 			])
 	CFLAGS="${CFLAGS_orig}"
 	LIBS="${LIBS_orig}"
