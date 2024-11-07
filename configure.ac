@@ -328,7 +328,7 @@ AC_SUBST([SOXWRAP_CPPFLAGS])
 
 # Checks for libidn2, p11-kit-1
 PKG_CHECK_MODULES([IDN2],[libidn2])
-PKG_CHECK_MODULES([P11KIT],[p11-kit-1])
+# PKG_CHECK_MODULES([P11KIT],[p11-kit-1])
 
 # Checks for random number source
 AX_CHECK_RANDOM_SOURCE(RANDOM_DEVICE)
