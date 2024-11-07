@@ -459,7 +459,8 @@ then
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
-				AX_CHECK_PKG_LIBS_NEEDS_RPATH([gnutls],[
+				AX_CHECK_PKG_LIBS_NEEDS_RPATH(
+				[gnutls],[GNUTLS_LIBS_RPATH],[
 					AC_LANG_PROGRAM([[#include <gnutls/gnutls.h>]],
 							[[gnutls_global_init();]])
 				],[
@@ -518,7 +519,7 @@ then
 	then
 		gnutlsdep="${GNUTLS_LIBS_STATIC}"
 	else
-		gnutlsdep=`$PKG_CONFIG --libs gnutls`
+		gnutlsdep=`$PKG_CONFIG --libs gnutls`" ${GNUTLS_LIBS_RPATH}"
 	fi
 	if test "x$have_gnutls3" = "xno"
 	then

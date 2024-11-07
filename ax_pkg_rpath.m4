@@ -11,6 +11,14 @@ dnl	b) CFLAGS and LIBS are already modified to include the
 dnl	   pkg-config --cflags & --libs values
 dnl	c) compiler should accept GCC-like "-Wl,-rpath" option
 dnl
+dnl
+dnl AX_CHECK_PKG_LIBS_NEEDS_RPATH()
+dnl $1: pkg name
+dnl $2: variable name to get -Wl,-rpath=XXX option
+dnl $3: AC_LANG_PROGRAM etc to be given to AC_LINK_IFELSE()
+dnl $4: what to be executed if -rpath works
+dnl $5: what to be executed if -rpath fails
+dnl
 dnl ---------------------------------------------------------
 
 AC_DEFUN([AX_CHECK_PKG_LIBS_NEEDS_RPATH],[
@@ -40,15 +48,18 @@ AC_DEFUN([AX_CHECK_PKG_LIBS_NEEDS_RPATH],[
   if test x"${ax_chk_pkg_rpath}" != x
   then
     LIBS="${LIBS} ${ax_chk_pkg_rpath}"
-    AC_LINK_IFELSE([$2],[ax_chk_pkg_rpath_retry=yes],[])
+    AC_LINK_IFELSE([$3],[
+      $2="${ax_chk_pkg_rpath}"
+      ax_chk_pkg_rpath_retry=yes
+    ],[])
   fi
 
   LIBS="${ax_chk_pkg_rpath_orig_libs}"
 
   if test x"${ax_chk_pkg_rpath_retry}" = xyes
   then
-    $3
-  else
     $4
+  else
+    $5
   fi
 ])
