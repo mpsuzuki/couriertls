@@ -31,7 +31,9 @@ if !HAVE_LIBLOCK
 endif
 
 libcouriertls_srcs = tlscache.c tlscache.h tlsinfo.c
-libcouriertls_cflags = $(LIBLOCK_CFLAGS) $(NUMLIB_CPPFLAGS)
+libcouriertls_cflags = \
+	$(IDN2_CFLAGS) \
+	$(LIBLOCK_CFLAGS) $(NUMLIB_CPPFLAGS)
 
 
 # -------------------------------------------------
