@@ -442,8 +442,29 @@ then
 else
 	have_gnutls="no: pkg-config not found"
 fi
-
 AC_MSG_RESULT($have_gnutls)
+
+# GnuTLS has long dependency, the link flag should be tested before testing static link
+if test "$have_gnutls" = "yes"
+then
+	CFLAGS_orig="${CFLAGS}"
+	LIBS_orig="${LIBS}"
+	AC_MSG_CHECKING([whether default link flag for gnutls works])
+	CFLAGS="${CFLAGS} "`${PKG_CONFIG} --cflags gnutls`
+	LIBS="${LIBS} "`${PKG_CONFIG} --libs gnutls`
+	AC_LINK_IFELSE([ AC_LANG_PROGRAM(
+				[[#include <gnutls/gnutls.h>]],
+				[[gnutls_global_init();]]	)
+			],[
+				AC_MSG_RESULT(yes)
+			],[
+				AC_MSG_RESULT(no)
+				have_gnutls=no
+			])
+	CFLAGS="${CFLAGS_orig}"
+	LIBS="${LIBS_orig}"
+fi
+
 AM_CONDITIONAL(HAVE_GNUTLS, [test "x${have_gnutls}" = xyes])
 
 if test "$have_gnutls" = "yes"
