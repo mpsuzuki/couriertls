@@ -341,9 +341,11 @@ AC_CHECK_LIB(ssl, OPENSSL_init_ssl, have_ssl=yes)
 if test x"${have_ssl}" = xyes
 then
   AC_MSG_CHECKING([whether static link flag for openssl works])
+  OPENSSL_CFLAGS=`${PKG_CONFIG} --cflags openssl`
+  OPENSSL_LIBS=`${PKG_CONFIG} --libs openssl`
   orig_CFLAGS="${CFLAGS}"
   orig_LIBS="${LIBS}"
-  CFLAGS="${CFLAGS} "`${PKG_CONFIG} --cflags openssl`
+  CFLAGS="${CFLAGS} ${OPENSSL_LIBS}"
   LIBS="-static ${LIBS} "`${PKG_CONFIG} --libs --static openssl`
   AC_LINK_IFELSE([
                    AC_LANG_PROGRAM([[#include <openssl/ssl.h>]],
@@ -360,6 +362,8 @@ then
 fi
 
 AM_CONDITIONAL(HAVE_OPENSSL, [test "x${have_ssl}" = xyes])
+AC_SUBST([OPENSSL_CFLAGS])
+AC_SUBST([OPENSSL_LIBS])
 AC_SUBST([OPENSSL_LIBS_STATIC])
 
 if test "$have_ssl" = "yes"

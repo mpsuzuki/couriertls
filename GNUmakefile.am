@@ -47,7 +47,7 @@ endif
 openssldep = @openssldep@
 
 couriertls_openssl_CFLAGS = \
-	$(couriertls_CFLAGS)
+	$(OPENSSL_CFLAGS) $(couriertls_CFLAGS)
 
 couriertls_openssl_SOURCES = $(couriertls_SOURCES)
 
@@ -64,7 +64,7 @@ libcouriertlsopenssl_a_SOURCES = \
 	$(libcouriertls_srcs) \
 	libcouriertls.c libcouriertls.h
 libcouriertlsopenssl_a_CFLAGS = \
-	$(libcouriertls_cflags)
+	$(OPENSSL_CFLAGS) $(libcouriertls_cflags)
 
 
 # -------------------------------------------------
